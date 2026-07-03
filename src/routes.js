@@ -23,7 +23,7 @@ router.delete('/itens/:id', (req, res) => {
 router.put('/itens/:id', (req, res) => {
     const { nome, valor } = req.body
         const id = Number(req.params.id)
-        const item = itens.find(item => item.id === id)]
+        const item = itens.find(item => item.id === id)
 
         if (!nome || !valor) {
             return res.status(400).json({
@@ -46,9 +46,10 @@ router.put('/itens/:id', (req, res) => {
 })
 
 
-router.get('/itens', (req, res) => {
+router.get('/itens', async (req, res) => {
     return res.status(200).json({
-        itens
+        const conectarBancoDados =  await connectDB();
+        const produtos = await conectarBancoDados.all("SELECT * FROM tarefas")
     })
 })
 
