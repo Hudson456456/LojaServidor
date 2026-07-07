@@ -1,61 +1,27 @@
 const express = require("express");
-const { itens } = require("./data/memory")
+const connectDB = require("./data/database");
+
+const router = express.Router();
 
 
-const router = express.Router()
+// GET - Mostrar todos os itens
+router.get("/itens", async (req, res) => {
 
-router.delete('/itens/:id', (req, res) => {
-    const id = Number(req.params.id)
-        const indice = itens.findIndex(item => item.id === id)
+    const bancoDeDados = await connectDB();
 
-        if (indice === -1) {
-            return res.status(404).json({
-                mensagem: "Item não encontrado"
-            });
-        }
+    const itens = await bancoDeDados.all("SELECT * FROM itens");
 
-        itens.splice(indice, 1)
     return res.status(200).json({
-        mensagem: "Item removido"
-    })
-})
+        itens
+    });
 
-router.put('/itens/:id', (req, res) => {
-    const { nome, valor } = req.body
-        const id = Number(req.params.id)
-        const item = itens.find(item => item.id === id)
-
-        if (!nome || !valor) {
-            return res.status(400).json({
-                mensagem: "Nome e valor são obrigatórios"
-            });
-        }
-
-        if (!item) {
-            return res.status(404).json({
-                mensagem: "Item não encontrado"
-            });
-        }
-
-        item.nome = nome
-        item.valor = valor
-    return res.status(200).json({
-        mensagem: "Item atualizado",
-        item
-    })
-})
+});
 
 
-router.get('/itens', async (req, res) => {
-    return res.status(200).json({
-        const conectarBancoDados =  await connectDB();
-        const produtos = await conectarBancoDados.all("SELECT * FROM tarefas")
-    })
-})
+// POST - Criar um item
+router.post("/itens", async (req, res) => {
 
-
-router.post('/itens', (req, res) => {
-    const { nome, valor } = req.body
+    const { nome, valor } = req.body;
 
     if (!nome || !valor) {
         return res.status(400).json({
@@ -63,23 +29,67 @@ router.post('/itens', (req, res) => {
         });
     }
 
-    const maiorId = itens.reduce((maior, item) => {
-        return item.id > maior ? item.id : maior;
-    }, 0);
+    const bancoDeDados = await connectDB();
 
-    const novoItem = {
-        id: maiorId + 1,
-        nome,
-        valor
-    }
-
-    itens.push(novoItem)
+    await bancoDeDados.run(
+        "INSERT INTO itens (nome, valor) VALUES (?, ?)",
+        [nome, valor]
+    );
 
     return res.status(201).json({
-        mensagem: "Item criado",
-        item: novoItem
-    })
-    
-})
+        mensagem: "Item criado com sucesso"
+    });
+
+});
+
+
+// PUT - Atualizar um item
+router.put("/itens/:id", async (req, res) => {
+
+    const { id } = req.params;
+    const { nome, valor } = req.body;
+
+    const bancoDeDados = await connectDB();
+
+    const item = await bancoDeDados.get(
+        "SELECT * FROM itens WHERE id = ?",
+        [id]
+    );
+
+    if (!item) {
+        return res.status(404).json({
+            mensagem: "Item não encontrado"
+        });
+    }
+
+    await bancoDeDados.run(
+        "UPDATE itens SET nome = ?, valor = ? WHERE id = ?",
+        [nome, valor, id]
+    );
+
+    return res.status(200).json({
+        mensagem: "Item atualizado com sucesso"
+    });
+
+});
+
+
+// DELETE - Remover um item
+router.delete("/itens/:id", async (req, res) => {
+
+    const { id } = req.params;
+
+    const bancoDeDados = await connectDB();
+
+    await bancoDeDados.run(
+        "DELETE FROM itens WHERE id = ?",
+        [id]
+    );
+
+    return res.status(200).json({
+        mensagem: "Item removido"
+    });
+
+});
 
 module.exports = router;

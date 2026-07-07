@@ -7,6 +7,14 @@ async function connectDB() {
         driver: sqlite3.Database
     });
 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS itens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            valor REAL NOT NULL
+        )
+    `);
+
     return db;
 }
 
