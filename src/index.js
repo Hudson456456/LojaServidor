@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const rotas = require("./routes");
+const rotas = require("./routes/itemRoutes");
 const { middlewareDeAutenticacao } = require("./middleware/middle");
 
 const connectDB = require("./data/database");
